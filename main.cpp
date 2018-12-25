@@ -8,25 +8,54 @@
 #include "PinDetect.h" // URL: http://mbed.org/users/AjK/libraries/PinDetect
 using namespace std;
 
+// forward declare functions
+void UpdateRotaryValue();
+void DisplayMenuOptions(uint8_t menuOffset);
+void HighlightMenuOption(uint8_t menuOffset, uint8_t position);
+void UpdateDisplayMenu(uint8_t menuOffset, uint8_t position);
+
 #define TITLE_BAR_HEIGHT        40
-#define TITLE_BAR_COLOR         0xff0055ff
-#define TITLE_BAR_TEXTCOLOR     0xff00ffff
+#define TITLE_BAR_COLOR         0xff1253d6
+#define TITLE_BAR_TEXTCOLOR     0xffffffff
 
 #define STATUS_BAR_HEIGHT       30
 #define STATUS_BAR_COLOR        0xff000000
 #define STATUS_BAR_TEXTCOLOR    0xffaaaaaa
 
-#define MENU_FRAME_COLOR        0xff222222
+#define MENU_FRAME_COLOR        0xff1f537f
 #define MENU_FRAME_TEXTCOLOR    0xffffffff
 #define MENU_FRAME_LINE_HEIGHT  35
 #define MENU_FRAME_PADDING      10
 
 #define MENU_DISPLAY_COUNT       7
-#define MENU_HIGHLIGHT_TEXTCOLOR 0xff000000
-#define MENU_HIGHLIGHT_BACKCOLOR 0xffDDDDDD
+#define MENU_HIGHLIGHT_TEXTCOLOR 0xffffffff
+#define MENU_HIGHLIGHT_BACKCOLOR 0xffe95431
 
-// forward declare functions
-void UpdateRotaryValue();
+const char* MenuOptions[] = { 
+  "1 Menu One", 
+  "2 Menu Two",
+  "3 Menu Three",
+  "4 Menu Four",
+  "5 Menu Five",
+  "6 Menu Six",
+  "7 Menu Seven",
+  "8 Menu Eight",
+  "9 Menu Nine",
+  "10 Menu Ten",
+  "11 Menu Eleven",
+  "12 max 255 menu",
+  "13 or more...",
+  "14 More items",
+  "15 possible :)",
+  "16 just add to",
+  "17 array items.",
+  "18 We can go on",
+  "19 forever here."
+};
+
+uint8_t mainMenuOffset = 0;
+uint8_t mainMenuPosition = 1;
+uint8_t totalMenuCount = sizeof(MenuOptions) / sizeof(char*);
 
 LCD_DISCO_F429ZI lcd;
 char lcdBuffer[20]; // lcd display buffer
@@ -49,11 +78,11 @@ void SwitchHandler()
 // Interrupt for Encoder Rotary Out A/B
 PinDetect EncoderOutA(PC_12, PullUp);
 PinDetect EncoderOutB(PC_11, PullUp);
-int EncoderOutA_LastState = 0;
-int EncoderOutB_LastState = 0;
+int encoderOutA_LastState = 0;
+int encoderOutB_LastState = 0;
 int EncoderOutA_State;
-int EncoderOutB_State;
-int rotation_value = 0;
+int encoderOutB_State;
+int rotationValue = 0;
 
 // Check Rotary Encoder status (switch + rotation)
 // based on datasheet (CW Rotation)
@@ -68,64 +97,64 @@ void RotaryEncoderHandlerA_assert()
 {
   EncoderOutA_State = 1;
   led1 = 1;
-  if (EncoderOutA_State != EncoderOutA_LastState)
+  if (EncoderOutA_State != encoderOutA_LastState)
   {
     // check if we moved CW, increment for each detent
-    if (EncoderOutA_State != EncoderOutB_State)
+    if (EncoderOutA_State != encoderOutB_State)
     {
       // CW
-      rotation_value += 1;
+      rotationValue += 1;
+      mainMenuPosition += 1;
     }
     else
     {
-      rotation_value -= 1;
+      rotationValue -= 1;
+      mainMenuPosition -= 1;
     }
   }
-  EncoderOutA_LastState = EncoderOutA_State;
-  UpdateRotaryValue();
+  encoderOutA_LastState = EncoderOutA_State;
+  // UpdateRotaryValue();
+  UpdateDisplayMenu(mainMenuOffset, mainMenuPosition);
 }
 void RotaryEncoderHandlerA_deasserted()
 {
   EncoderOutA_State = 0;
   led1 = 0;
-  if (EncoderOutA_State != EncoderOutA_LastState)
+  if (EncoderOutA_State != encoderOutA_LastState)
   {
     // check if we moved CW, increment for each detent
-    if (EncoderOutA_State != EncoderOutB_State)
+    if (EncoderOutA_State != encoderOutB_State)
     {
       // CW
-      rotation_value += 1;
-    }
-    else
-    {
-      // CCW
-      rotation_value -= 1;
+      rotationValue += 1;
+      mainMenuPosition += 1;
     }
   }
-  EncoderOutA_LastState = EncoderOutA_State;
-  UpdateRotaryValue();
+  encoderOutA_LastState = EncoderOutA_State;
+  // UpdateRotaryValue();
 }
 
 void RotaryEncoderHandlerB_assert()
 {
-  EncoderOutB_State = 1;
+  encoderOutB_State = 1;
   led2 = 1;
-  EncoderOutB_LastState = EncoderOutB_State;
+  encoderOutB_LastState = encoderOutB_State;
 }
 
 void RotaryEncoderHandlerB_deasserted()
 {
-  EncoderOutB_State = 0;
+  encoderOutB_State = 0;
   led2 = 0;
-  if (EncoderOutB_LastState)
+  if (encoderOutB_LastState)
   {
     if (!EncoderOutA_State)
     {
-      rotation_value -= 1;
+      rotationValue -= 1;
+      mainMenuPosition -= 1;
     }
   }
-  EncoderOutB_LastState = EncoderOutB_State;
-  UpdateRotaryValue();
+  encoderOutB_LastState = encoderOutB_State;
+  // UpdateRotaryValue();
 }
 
 void UpdateRotaryValue()
@@ -134,7 +163,7 @@ void UpdateRotaryValue()
   lcd.SetFont(&Font24);
   lcd.SetBackColor(LCD_COLOR_BLACK);
   lcd.SetTextColor(LCD_COLOR_WHITE);
-  sprintf(lcdBuffer, "%03d", rotation_value);
+  sprintf(lcdBuffer, "%03d", rotationValue);
   lcd.DisplayStringAt(1, 100, (uint8_t *)lcdBuffer, CENTER_MODE);
 }
 
@@ -146,10 +175,10 @@ void InitRotaryEncoder()
   // setup Interrupts for Encoder Output A/B
   EncoderOutA.attach_asserted(&RotaryEncoderHandlerA_assert);
   EncoderOutA.attach_deasserted(&RotaryEncoderHandlerA_deasserted);
-  EncoderOutA.setSampleFrequency(250); // in (us)
+  EncoderOutA.setSampleFrequency(500); // in (us)
   EncoderOutB.attach_asserted(&RotaryEncoderHandlerB_assert);
   EncoderOutB.attach_deasserted(&RotaryEncoderHandlerB_deasserted);
-  EncoderOutB.setSampleFrequency(250); // in (us)
+  EncoderOutB.setSampleFrequency(500); // in (us)
 }
 
 void InitLCDScreen()
@@ -159,7 +188,7 @@ void InitLCDScreen()
   // lcd.SetFont(&Font24);
   // lcd.SetBackColor(LCD_COLOR_BLACK); // text background color
   // lcd.SetTextColor(LCD_COLOR_WHITE); // text foreground color
-  UpdateRotaryValue();
+  // UpdateRotaryValue();
 }
 
 void DrawTitleBar(char *Title)
@@ -192,54 +221,95 @@ void DrawMenuFrame(){
   lcd.FillRect(0, TITLE_BAR_HEIGHT, LcdWidth, LcdHeight - TITLE_BAR_HEIGHT - STATUS_BAR_HEIGHT);
 }
 
-void DisplayMenuOptions(){
+void DisplayMenuOptions(uint8_t menuOffset){
+  // clear menu and redisplay
+  DrawMenuFrame();
   lcd.SetBackColor(MENU_FRAME_COLOR);
   lcd.SetTextColor(MENU_FRAME_TEXTCOLOR);
   lcd.SetFont(&Font20);
   for (int i=0; i < MENU_DISPLAY_COUNT; i++){
-    lcd.DisplayStringAt(MENU_FRAME_PADDING, (TITLE_BAR_HEIGHT + MENU_FRAME_PADDING) + (MENU_FRAME_LINE_HEIGHT * i), (uint8_t *)"AAAAAAAAAAAA", LEFT_MODE);  
+    lcd.DisplayStringAt(MENU_FRAME_PADDING, (TITLE_BAR_HEIGHT + MENU_FRAME_PADDING) + (MENU_FRAME_LINE_HEIGHT * i), (uint8_t *)MenuOptions[i+menuOffset], LEFT_MODE);  
   }
 
 }
 
-void HighlightMenuOption(uint8_t position){
-  // note: text may have uneven padding, so we need to draw the highlight bkgd color manually
+/*  This function highlights the currently selected menu option.
+    This function is also aware if menus were shifted up or down   */
+void HighlightMenuOption(uint8_t menuOffset, uint8_t position){
+  // position starts at 1..MENU_DISPLAY_COUNT
+  // NOTE: Text may have uneven padding, so we need to draw the highlight bkgd color manually
   lcd.SetTextColor(MENU_HIGHLIGHT_BACKCOLOR);
   lcd.FillRect(0, TITLE_BAR_HEIGHT + (MENU_FRAME_LINE_HEIGHT * (position - 1)), LcdWidth, MENU_FRAME_LINE_HEIGHT);
-  // then write the text
+  // then print the text with a specific background color
   lcd.SetBackColor(MENU_HIGHLIGHT_BACKCOLOR);
   lcd.SetTextColor(MENU_HIGHLIGHT_TEXTCOLOR);
-  lcd.DisplayStringAt(MENU_FRAME_PADDING, (TITLE_BAR_HEIGHT + MENU_FRAME_PADDING) + (MENU_FRAME_LINE_HEIGHT * (position - 1)), (uint8_t *)"SELECTED MENU", LEFT_MODE);  
+  lcd.DisplayStringAt(MENU_FRAME_PADDING, (TITLE_BAR_HEIGHT + MENU_FRAME_PADDING) + (MENU_FRAME_LINE_HEIGHT * (position - 1)), (uint8_t *)MenuOptions[menuOffset + position - 1], LEFT_MODE);  
 }
 
+/*  this function is the business logic for monitoring scroll position and 
+    which menu item is currently highlighted and active       */
+void UpdateDisplayMenu(uint8_t menuOffset, uint8_t position){
+  // check if we need to shift up or down our menu options to show off-screen items
+  // ex: pos=8, offset=0 ===> pos=7, offset=1
+  if ((position > MENU_DISPLAY_COUNT) && (position + menuOffset <= totalMenuCount)) {
+    position = MENU_DISPLAY_COUNT;
+    menuOffset += 1;
+  }
+  // ex: pos=0, offset=1 ===> pos=1, offset=0
+  if ((position < 1) && (menuOffset > 0)) {
+    position = 1;
+    menuOffset -= 1;
+  }
 
+  // bounds checking of highlightt bar position 
+  if (position < 1){
+    position = 1;
+  }
+  if (position > MENU_DISPLAY_COUNT){
+    position = MENU_DISPLAY_COUNT;
+  }
+  // update global variables
+  mainMenuPosition = position;
+  mainMenuOffset = menuOffset;
+
+  DisplayMenuOptions(menuOffset);
+  HighlightMenuOption(menuOffset, position);
+}
 
 
 int main()
 {
   pc.baud(115200);
+// pc.printf("%d menu items \n", totalMenuCount);
+
   InitRotaryEncoder();
   InitLCDScreen();
 
   // draw title bar
-  DrawTitleBar("LCDMenu v0.1");
-
+  DrawTitleBar("LCDMenu v0.4");
   DrawMenuFrame();
-  
-  DisplayMenuOptions();
-  HighlightMenuOption(3);
+  // these next 2 functions control the logic of the menu display
+  DisplayMenuOptions(mainMenuOffset);
+  HighlightMenuOption(mainMenuOffset, mainMenuPosition);
 
   while (true)
   {
-    led1 = !led1;
-    wait(0.5);
+    // NOTE: in this main loop, there are no polling being done.
+    // Rotary and switch state changes are monitored via interrupts
 
-    // update status bar with text
+    // keep blinking led using blocking delay
+    // so we can confirm that Interrupts are working
+    led1 = !led1;
+    wait(0.5);      
+
+    // update status bar with text, again using blocking delay
     UpdateStatusBar("Hello world!");
     wait(1.5);
-    UpdateStatusBar("Sample text goes here... what if its long?"); // it just gets truncated
+    UpdateStatusBar("Sample text here... "); // it just gets truncated
     wait(1.5);
-    UpdateStatusBar("and so on...");
+    UpdateStatusBar("This can be used to ");
+    wait(1.4);
+    UpdateStatusBar("show status messages.");
     wait(1.5);
   }
 }
