@@ -4,15 +4,13 @@
 // Sample program for displaying a multi-layered menu system
 // ------------------------------------------------------------------
 #include "mbed.h"
+#include "LCDMenu.h"
 #include "LCD_DISCO_F429ZI.h"
 #include "PinDetect.h" // URL: http://mbed.org/users/AjK/libraries/PinDetect
+
 using namespace std;
 
-// forward declare functions
-void UpdateRotaryValue();
-void DisplayMenuOptions(uint8_t menuOffset);
-void HighlightMenuOption(uint8_t menuOffset, uint8_t position);
-void UpdateDisplayMenu(uint8_t menuOffset, uint8_t position);
+#define PROGRAM_VERSION         "LCDMenu v0.5"
 
 #define TITLE_BAR_HEIGHT        40
 #define TITLE_BAR_COLOR         0xff1253d6
@@ -286,7 +284,7 @@ int main()
   InitLCDScreen();
 
   // draw title bar
-  DrawTitleBar("LCDMenu v0.4");
+  DrawTitleBar(PROGRAM_VERSION);
   DrawMenuFrame();
   // these next 2 functions control the logic of the menu display
   DisplayMenuOptions(mainMenuOffset);

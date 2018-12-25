@@ -1,0 +1,186 @@
+[
+    {
+        "module": "BSP_DISCO_F429ZI/Drivers", 
+        "size": {
+            ".data-delta": 61, 
+            ".text-delta": 3486, 
+            ".bss": 593, 
+            ".data": 61, 
+            ".bss-delta": 593, 
+            ".text": 3486
+        }
+    }, 
+    {
+        "module": "BSP_DISCO_F429ZI/Utilities", 
+        "size": {
+            ".data-delta": 24, 
+            ".text-delta": 13680, 
+            ".bss": 0, 
+            ".data": 24, 
+            ".bss-delta": 0, 
+            ".text": 13680
+        }
+    }, 
+    {
+        "module": "LCD_DISCO_F429ZI/LCD_DISCO_F429ZI.o", 
+        "size": {
+            ".data-delta": 0, 
+            ".text-delta": 158, 
+            ".bss": 0, 
+            ".data": 0, 
+            ".bss-delta": 0, 
+            ".text": 158
+        }
+    }, 
+    {
+        "module": "[fill]", 
+        "size": {
+            ".data-delta": 17, 
+            ".text-delta": 162, 
+            ".bss": 37, 
+            ".data": 17, 
+            ".bss-delta": 37, 
+            ".text": 162
+        }
+    }, 
+    {
+        "module": "[lib]/c.a", 
+        "size": {
+            ".data-delta": 2472, 
+            ".text-delta": 31328, 
+            ".bss": 89, 
+            ".data": 2472, 
+            ".bss-delta": 89, 
+            ".text": 31328
+        }
+    }, 
+    {
+        "module": "[lib]/gcc.a", 
+        "size": {
+            ".data-delta": 0, 
+            ".text-delta": 3116, 
+            ".bss": 0, 
+            ".data": 0, 
+            ".bss-delta": 0, 
+            ".text": 3116
+        }
+    }, 
+    {
+        "module": "[lib]/misc", 
+        "size": {
+            ".data-delta": 12, 
+            ".text-delta": 208, 
+            ".bss": 28, 
+            ".data": 12, 
+            ".bss-delta": 28, 
+            ".text": 208
+        }
+    }, 
+    {
+        "module": "main.o", 
+        "size": {
+            ".data-delta": 82, 
+            ".text-delta": 2658, 
+            ".bss": 658, 
+            ".data": 82, 
+            ".bss-delta": 658, 
+            ".text": 2658
+        }
+    }, 
+    {
+        "module": "mbed-os/cmsis", 
+        "size": {
+            ".data-delta": 0, 
+            ".text-delta": 1033, 
+            ".bss": 84, 
+            ".data": 0, 
+            ".bss-delta": 84, 
+            ".text": 1033
+        }
+    }, 
+    {
+        "module": "mbed-os/components", 
+        "size": {
+            ".data-delta": 0, 
+            ".text-delta": 54, 
+            ".bss": 0, 
+            ".data": 0, 
+            ".bss-delta": 0, 
+            ".text": 54
+        }
+    }, 
+    {
+        "module": "mbed-os/drivers", 
+        "size": {
+            ".data-delta": 4, 
+            ".text-delta": 1866, 
+            ".bss": 100, 
+            ".data": 4, 
+            ".bss-delta": 100, 
+            ".text": 1866
+        }
+    }, 
+    {
+        "module": "mbed-os/features", 
+        "size": {
+            ".data-delta": 4, 
+            ".text-delta": 172, 
+            ".bss": 192, 
+            ".data": 4, 
+            ".bss-delta": 192, 
+            ".text": 172
+        }
+    }, 
+    {
+        "module": "mbed-os/hal", 
+        "size": {
+            ".data-delta": 4, 
+            ".text-delta": 2288, 
+            ".bss": 68, 
+            ".data": 4, 
+            ".bss-delta": 68, 
+            ".text": 2288
+        }
+    }, 
+    {
+        "module": "mbed-os/platform", 
+        "size": {
+            ".data-delta": 260, 
+            ".text-delta": 5087, 
+            ".bss": 242, 
+            ".data": 260, 
+            ".bss-delta": 242, 
+            ".text": 5087
+        }
+    }, 
+    {
+        "module": "mbed-os/rtos", 
+        "size": {
+            ".data-delta": 168, 
+            ".text-delta": 7792, 
+            ".bss": 5969, 
+            ".data": 168, 
+            ".bss-delta": 5969, 
+            ".text": 7792
+        }
+    }, 
+    {
+        "module": "mbed-os/targets", 
+        "size": {
+            ".data-delta": 4, 
+            ".text-delta": 13515, 
+            ".bss": 716, 
+            ".data": 4, 
+            ".bss-delta": 716, 
+            ".text": 13515
+        }
+    }, 
+    {
+        "summary": {
+            "static_ram": 11888, 
+            "total_flash_delta": 89715, 
+            "static_ram_delta": 11888, 
+            "total_flash": 89715
+        }
+    }
+]

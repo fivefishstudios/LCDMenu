@@ -1,4 +1,5 @@
-BUILD/main.o: main.cpp BUILD/mbed_config.h mbed-os/mbed.h \
+BUILD/DISCO_F429ZI/GCC_ARM/main.o: main.cpp \
+ BUILD/DISCO_F429ZI/GCC_ARM/mbed_config.h mbed-os/mbed.h \
  mbed-os/platform/mbed_version.h mbed-os/rtos/rtos.h \
  mbed-os/rtos/TARGET_CORTEX/mbed_rtos_storage.h \
  mbed-os/rtos/TARGET_CORTEX/rtx5/RTX/Include/rtx_os.h \
