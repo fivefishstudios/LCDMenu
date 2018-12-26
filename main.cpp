@@ -66,13 +66,15 @@ DigitalOut led1(PG_14); // red
 DigitalOut led2(PG_13); // green
 DigitalOut greenLed(PD_12);
 
-// Interrupt for Encoder Switch
+// Int Handler for Encoder PB Switch
 PinDetect EncoderSwitch(PF_9);
+
 void SwitchHandler()
 {
   led2 = !led2;
   greenLed = !greenLed;
 }
+
 // Interrupt for Encoder Rotary Out A/B
 PinDetect EncoderOutA(PC_12, PullUp);
 PinDetect EncoderOutB(PC_11, PullUp);
@@ -286,6 +288,7 @@ int main()
   // draw title bar
   DrawTitleBar(PROGRAM_VERSION);
   DrawMenuFrame();
+  
   // these next 2 functions control the logic of the menu display
   DisplayMenuOptions(mainMenuOffset);
   HighlightMenuOption(mainMenuOffset, mainMenuPosition);
