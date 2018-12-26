@@ -10,51 +10,6 @@
 
 using namespace std;
 
-#define PROGRAM_VERSION         "LCDMenu v0.5"
-
-#define TITLE_BAR_HEIGHT        40
-#define TITLE_BAR_COLOR         0xff1253d6
-#define TITLE_BAR_TEXTCOLOR     0xffffffff
-
-#define STATUS_BAR_HEIGHT       30
-#define STATUS_BAR_COLOR        0xff000000
-#define STATUS_BAR_TEXTCOLOR    0xffaaaaaa
-
-#define MENU_FRAME_COLOR        0xff1f537f
-#define MENU_FRAME_TEXTCOLOR    0xffffffff
-#define MENU_FRAME_LINE_HEIGHT  35
-#define MENU_FRAME_PADDING      10
-
-#define MENU_DISPLAY_COUNT       7
-#define MENU_HIGHLIGHT_TEXTCOLOR 0xffffffff
-#define MENU_HIGHLIGHT_BACKCOLOR 0xffe95431
-
-const char* MenuOptions[] = { 
-  "1 Menu One", 
-  "2 Menu Two",
-  "3 Menu Three",
-  "4 Menu Four",
-  "5 Menu Five",
-  "6 Menu Six",
-  "7 Menu Seven",
-  "8 Menu Eight",
-  "9 Menu Nine",
-  "10 Menu Ten",
-  "11 Menu Eleven",
-  "12 max 255 menu",
-  "13 or more...",
-  "14 More items",
-  "15 possible :)",
-  "16 just add to",
-  "17 array items.",
-  "18 We can go on",
-  "19 forever here."
-};
-
-uint8_t mainMenuOffset = 0;
-uint8_t mainMenuPosition = 1;
-uint8_t totalMenuCount = sizeof(MenuOptions) / sizeof(char*);
-
 LCD_DISCO_F429ZI lcd;
 char lcdBuffer[20]; // lcd display buffer
 uint16_t LcdWidth = lcd.GetXSize();
@@ -69,10 +24,51 @@ DigitalOut greenLed(PD_12);
 // Int Handler for Encoder PB Switch
 PinDetect EncoderSwitch(PF_9);
 
+void Do_Nothing()
+{
+  // nothing...
+}
+
+void MenuOne_Function()
+{
+  lcd.Clear(LCD_COLOR_RED);
+}
+
+void MenuTwo_Function()
+{
+  lcd.Clear(LCD_COLOR_GREEN);
+}
+
+void MenuThree_Function()
+{
+  lcd.Clear(LCD_COLOR_YELLOW);
+}
+
 void SwitchHandler()
 {
+  void (*callback_function)(); // declare function pointer
   led2 = !led2;
   greenLed = !greenLed;
+  // if button pressed, we need to determine which menu item is currently highlighted
+  // then execute a callback function for that menu item
+  // MenuOptions[mainMenuOffset + mainMenuPosition - 1] is the selected menu option and ndx
+  switch ((mainMenuOffset + mainMenuPosition - 1))
+  {
+  case 0: //     "1 Menu One"
+    callback_function = &MenuOne_Function;
+    break;
+  case 1: //     "2 Menu Two"
+    callback_function = &MenuTwo_Function;
+    break;
+  case 2: //     "3 Menu Three"
+    callback_function = &MenuThree_Function;
+    break;
+  default:
+    callback_function = &Do_Nothing;
+  }
+
+  // execute callback function
+  callback_function();
 }
 
 // Interrupt for Encoder Rotary Out A/B
@@ -184,11 +180,6 @@ void InitRotaryEncoder()
 void InitLCDScreen()
 {
   lcd.Clear(LCD_COLOR_BLACK);
-  // setup LCD Display
-  // lcd.SetFont(&Font24);
-  // lcd.SetBackColor(LCD_COLOR_BLACK); // text background color
-  // lcd.SetTextColor(LCD_COLOR_WHITE); // text foreground color
-  // UpdateRotaryValue();
 }
 
 void DrawTitleBar(char *Title)
@@ -216,26 +207,29 @@ void UpdateStatusBar(char *Text)
   lcd.DisplayStringAt(5, 300, (uint8_t *)Text, LEFT_MODE);
 }
 
-void DrawMenuFrame(){
+void DrawMenuFrame()
+{
   lcd.SetTextColor(MENU_FRAME_COLOR);
   lcd.FillRect(0, TITLE_BAR_HEIGHT, LcdWidth, LcdHeight - TITLE_BAR_HEIGHT - STATUS_BAR_HEIGHT);
 }
 
-void DisplayMenuOptions(uint8_t menuOffset){
+void DisplayMenuOptions(uint8_t menuOffset)
+{
   // clear menu and redisplay
   DrawMenuFrame();
   lcd.SetBackColor(MENU_FRAME_COLOR);
   lcd.SetTextColor(MENU_FRAME_TEXTCOLOR);
   lcd.SetFont(&Font20);
-  for (int i=0; i < MENU_DISPLAY_COUNT; i++){
-    lcd.DisplayStringAt(MENU_FRAME_PADDING, (TITLE_BAR_HEIGHT + MENU_FRAME_PADDING) + (MENU_FRAME_LINE_HEIGHT * i), (uint8_t *)MenuOptions[i+menuOffset], LEFT_MODE);  
+  for (int i = 0; i < MENU_DISPLAY_COUNT; i++)
+  {
+    lcd.DisplayStringAt(MENU_FRAME_PADDING, (TITLE_BAR_HEIGHT + MENU_FRAME_PADDING) + (MENU_FRAME_LINE_HEIGHT * i), (uint8_t *)MenuOptions[i + menuOffset], LEFT_MODE);
   }
-
 }
 
 /*  This function highlights the currently selected menu option.
     This function is also aware if menus were shifted up or down   */
-void HighlightMenuOption(uint8_t menuOffset, uint8_t position){
+void HighlightMenuOption(uint8_t menuOffset, uint8_t position)
+{
   // position starts at 1..MENU_DISPLAY_COUNT
   // NOTE: Text may have uneven padding, so we need to draw the highlight bkgd color manually
   lcd.SetTextColor(MENU_HIGHLIGHT_BACKCOLOR);
@@ -243,29 +237,34 @@ void HighlightMenuOption(uint8_t menuOffset, uint8_t position){
   // then print the text with a specific background color
   lcd.SetBackColor(MENU_HIGHLIGHT_BACKCOLOR);
   lcd.SetTextColor(MENU_HIGHLIGHT_TEXTCOLOR);
-  lcd.DisplayStringAt(MENU_FRAME_PADDING, (TITLE_BAR_HEIGHT + MENU_FRAME_PADDING) + (MENU_FRAME_LINE_HEIGHT * (position - 1)), (uint8_t *)MenuOptions[menuOffset + position - 1], LEFT_MODE);  
+  lcd.DisplayStringAt(MENU_FRAME_PADDING, (TITLE_BAR_HEIGHT + MENU_FRAME_PADDING) + (MENU_FRAME_LINE_HEIGHT * (position - 1)), (uint8_t *)MenuOptions[menuOffset + position - 1], LEFT_MODE);
 }
 
 /*  this function is the business logic for monitoring scroll position and 
     which menu item is currently highlighted and active       */
-void UpdateDisplayMenu(uint8_t menuOffset, uint8_t position){
+void UpdateDisplayMenu(uint8_t menuOffset, uint8_t position)
+{
   // check if we need to shift up or down our menu options to show off-screen items
   // ex: pos=8, offset=0 ===> pos=7, offset=1
-  if ((position > MENU_DISPLAY_COUNT) && (position + menuOffset <= totalMenuCount)) {
+  if ((position > MENU_DISPLAY_COUNT) && (position + menuOffset <= totalMenuCount))
+  {
     position = MENU_DISPLAY_COUNT;
     menuOffset += 1;
   }
   // ex: pos=0, offset=1 ===> pos=1, offset=0
-  if ((position < 1) && (menuOffset > 0)) {
+  if ((position < 1) && (menuOffset > 0))
+  {
     position = 1;
     menuOffset -= 1;
   }
 
-  // bounds checking of highlightt bar position 
-  if (position < 1){
+  // bounds checking of highlightt bar position
+  if (position < 1)
+  {
     position = 1;
   }
-  if (position > MENU_DISPLAY_COUNT){
+  if (position > MENU_DISPLAY_COUNT)
+  {
     position = MENU_DISPLAY_COUNT;
   }
   // update global variables
@@ -276,11 +275,10 @@ void UpdateDisplayMenu(uint8_t menuOffset, uint8_t position){
   HighlightMenuOption(menuOffset, position);
 }
 
-
 int main()
 {
   pc.baud(115200);
-// pc.printf("%d menu items \n", totalMenuCount);
+  // pc.printf("%d menu items \n", totalMenuCount);
 
   InitRotaryEncoder();
   InitLCDScreen();
@@ -288,7 +286,7 @@ int main()
   // draw title bar
   DrawTitleBar(PROGRAM_VERSION);
   DrawMenuFrame();
-  
+
   // these next 2 functions control the logic of the menu display
   DisplayMenuOptions(mainMenuOffset);
   HighlightMenuOption(mainMenuOffset, mainMenuPosition);
@@ -301,7 +299,7 @@ int main()
     // keep blinking led using blocking delay
     // so we can confirm that Interrupts are working
     led1 = !led1;
-    wait(0.5);      
+    wait(0.5);
 
     // update status bar with text, again using blocking delay
     UpdateStatusBar("Hello world!");
