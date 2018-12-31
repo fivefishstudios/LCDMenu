@@ -50,7 +50,6 @@ void MenuFour_Function()
   lcd.Clear(LCD_COLOR_BLUE);
 }
 
-
 void SwitchHandler()
 {
   void (*callback_function)(); // declare function pointer
@@ -59,7 +58,7 @@ void SwitchHandler()
   // if button pressed, we need to determine which menu item is currently highlighted
   // then execute a callback function for that menu item
   // MenuOptions[mainMenuOffset + mainMenuPosition - 1] is the selected menu option and ndx
-  MenuOptions[mainMenuOffset + mainMenuPosition - 1].callback_function();   // execute callback function for this menu item
+  MenuOptions[mainMenuOffset + mainMenuPosition - 1].callback_function(); // execute callback function for this menu item
 }
 
 // Interrupt for Encoder Rotary Out A/B
@@ -203,7 +202,7 @@ void DisplayMenuOptions(uint8_t menuOffset)
   lcd.SetFont(&Font20);
   // display all visible menu items
   // but if total menu count is less than visible menu items, use totalMenuCount lower value
-  for (int i = 0; i < (totalMenuCount < MENU_DISPLAY_COUNT ? totalMenuCount : MENU_DISPLAY_COUNT ); i++)
+  for (int i = 0; i < (totalMenuCount < MENU_DISPLAY_COUNT ? totalMenuCount : MENU_DISPLAY_COUNT); i++)
   {
     lcd.DisplayStringAt(MENU_FRAME_PADDING, (TITLE_BAR_HEIGHT + MENU_FRAME_PADDING) + (MENU_FRAME_LINE_HEIGHT * i), (uint8_t *)MenuOptions[i + menuOffset].MenuText, LEFT_MODE);
   }
@@ -215,7 +214,7 @@ void HighlightMenuOption(uint8_t menuOffset, uint8_t position)
 {
   // position starts at 1..MENU_DISPLAY_COUNT! ... except when total Menu count is less than MENU_DISPLAY_COUNT
   // Sanity check: position can never be > total menu count
-  position = (position > totalMenuCount ? totalMenuCount : position );
+  position = (position > totalMenuCount ? totalMenuCount : position);
   // NOTE: Text may have uneven padding, so we need to draw the highlight bkgd color manually
   lcd.SetTextColor(MENU_HIGHLIGHT_BACKCOLOR);
   lcd.FillRect(0, TITLE_BAR_HEIGHT + (MENU_FRAME_LINE_HEIGHT * (position - 1)), LcdWidth, MENU_FRAME_LINE_HEIGHT);
@@ -255,7 +254,8 @@ void UpdateDisplayMenu(uint8_t menuOffset, uint8_t position)
     position = MENU_DISPLAY_COUNT;
   }
   // Sanity check: position can never be > total menu items
-  if (position > totalMenuCount){
+  if (position > totalMenuCount)
+  {
     position = totalMenuCount;
   }
 
