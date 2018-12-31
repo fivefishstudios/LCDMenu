@@ -1,10 +1,27 @@
 // LCD Menu 
 #include "LCD_DISCO_F429ZI.h"
 
+
+// forward declare functions
+void DrawTitleBar(char *Title);
+void ClearStatusBar();
+void UpdateStatusBar(char *Text);
+void DrawMenuFrame();
+void UpdateDisplayMenu(uint8_t menuOffset, uint8_t position);
+void DisplayMenuOptions(uint8_t menuOffset);
+void HighlightMenuOption(uint8_t menuOffset, uint8_t position);
+
+void Do_Nothing();
+void MenuOne_Function();
+void MenuTwo_Function();
+void MenuThree_Function();
+
+
+
 LCD_DISCO_F429ZI lcd;
 char lcdBuffer[20]; // lcd display buffer
 
-#define PROGRAM_VERSION         "LCDMenu v0.5"
+#define PROGRAM_VERSION         "LCDMenu v0.6"
 
 #define TITLE_BAR_HEIGHT        40
 #define TITLE_BAR_COLOR         0xff1253d6
@@ -23,32 +40,43 @@ char lcdBuffer[20]; // lcd display buffer
 #define MENU_HIGHLIGHT_TEXTCOLOR 0xffffffff
 #define MENU_HIGHLIGHT_BACKCOLOR 0xffe95431
 
-const char *MenuOptions[] = {
-    "1 Menu One",
-    "2 Menu Two",
-    "3 Menu Three",
-    "4 Menu Four",
-    "5 Menu Five",
-    "6 Menu Six",
-    "7 Menu Seven",
-    "8 Menu Eight",
-    "9 Menu Nine",
-    "10 Menu Ten",
-    "11 Menu Eleven",
-    "12 max 255 menu",
-    "13 or more...",
-    "14 More items",
-    "15 possible :)",
-    "16 just add to",
-    "17 array items.",
-    "18 We can go on",
-    "19 forever here."};
 
-// forward declare functions
-void DrawTitleBar(char *Title);
-void ClearStatusBar();
-void UpdateStatusBar(char *Text);
-void DrawMenuFrame();
-void UpdateDisplayMenu(uint8_t menuOffset, uint8_t position);
-void DisplayMenuOptions(uint8_t menuOffset);
-void HighlightMenuOption(uint8_t menuOffset, uint8_t position);
+typedef struct MenuOptions_t
+{
+  char MenuText[20];
+  void (*callback_function)(); // declare function pointer
+};
+
+static  MenuOptions_t MenuOptions[] = {
+    {"1 Menu AAAA",  &Do_Nothing },
+    {"2 Menu BBBB",  &Do_Nothing },
+    {"3 Menu CCCC",  &Do_Nothing },
+    {"4 Menu DDDDD", &Do_Nothing },
+    {"5 Menu EEEE",  &Do_Nothing },
+    // {"6 Menu FFFFF", &MenuTwo_Function },
+    // {"7 Menu GGGGG", &MenuTwo_Function },
+    // {"8 Menu HHHHHH", &MenuTwo_Function },
+    // {"9 Menu IIII", &MenuTwo_Function },
+    // {"10 Menu JJJJJH", &MenuTwo_Function },
+};
+
+// const char *MenuOptions[] = {
+//     "1 Menu One",
+//     "2 Menu Two",
+//     "3 Menu Three",
+//     "4 Menu Four",
+//     "5 Menu Five",
+//     "6 Menu Six",
+//     "7 Menu Seven",
+//     "8 Menu Eight",
+//     "9 Menu Nine",
+//     "10 Menu Ten",
+//     "11 Menu Eleven",
+//     "12 max 255 menu",
+//     "13 or more...",
+//     "14 More items",
+//     "15 possible :)",
+//     "16 just add to",
+//     "17 array items.",
+//     "18 We can go on",
+//     "19 forever here."};

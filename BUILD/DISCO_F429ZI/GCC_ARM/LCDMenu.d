@@ -1,0 +1,2 @@
+BUILD/DISCO_F429ZI/GCC_ARM/LCDMenu.o: LCDMenu.cpp \
+ BUILD/DISCO_F429ZI/GCC_ARM/mbed_config.h

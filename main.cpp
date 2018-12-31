@@ -10,10 +10,9 @@
 
 using namespace std;
 
-
 uint8_t mainMenuOffset = 0;
 uint8_t mainMenuPosition = 1;
-uint8_t totalMenuCount = sizeof(MenuOptions) / sizeof(char *);
+uint8_t totalMenuCount = sizeof(MenuOptions) / sizeof(MenuOptions_t);
 uint16_t LcdWidth = lcd.GetXSize();
 uint16_t LcdHeight = lcd.GetYSize();
 
@@ -46,6 +45,12 @@ void MenuThree_Function()
   lcd.Clear(LCD_COLOR_YELLOW);
 }
 
+void MenuFour_Function()
+{
+  lcd.Clear(LCD_COLOR_BLUE);
+}
+
+
 void SwitchHandler()
 {
   void (*callback_function)(); // declare function pointer
@@ -54,23 +59,7 @@ void SwitchHandler()
   // if button pressed, we need to determine which menu item is currently highlighted
   // then execute a callback function for that menu item
   // MenuOptions[mainMenuOffset + mainMenuPosition - 1] is the selected menu option and ndx
-  switch ((mainMenuOffset + mainMenuPosition - 1))
-  {
-  case 0: //     "1 Menu One"
-    callback_function = &MenuOne_Function;
-    break;
-  case 1: //     "2 Menu Two"
-    callback_function = &MenuTwo_Function;
-    break;
-  case 2: //     "3 Menu Three"
-    callback_function = &MenuThree_Function;
-    break;
-  default:
-    callback_function = &Do_Nothing;
-  }
-
-  // execute callback function
-  callback_function();
+  MenuOptions[mainMenuOffset + mainMenuPosition - 1].callback_function();   // execute callback function for this menu item
 }
 
 // Interrupt for Encoder Rotary Out A/B
@@ -184,16 +173,6 @@ void InitLCDScreen()
   lcd.Clear(LCD_COLOR_BLACK);
 }
 
-// void DrawTitleBar(char *Title)
-// {
-//   lcd.SetTextColor(TITLE_BAR_COLOR);
-//   lcd.FillRect(0, 0, LcdWidth, TITLE_BAR_HEIGHT);
-//   lcd.SetTextColor(TITLE_BAR_TEXTCOLOR);
-//   lcd.SetBackColor(TITLE_BAR_COLOR);
-//   lcd.SetFont(&Font24);
-//   lcd.DisplayStringAt(0, 10, (uint8_t *)Title, CENTER_MODE);
-// }
-
 void ClearStatusBar()
 {
   lcd.SetTextColor(LCD_COLOR_BLACK);
@@ -215,31 +194,35 @@ void DrawMenuFrame()
   lcd.FillRect(0, TITLE_BAR_HEIGHT, LcdWidth, LcdHeight - TITLE_BAR_HEIGHT - STATUS_BAR_HEIGHT);
 }
 
-void DisplayMenuOptions(const char *mnuOptions[], uint8_t menuOffset)
+void DisplayMenuOptions(uint8_t menuOffset)
 {
   // clear menu and redisplay
   DrawMenuFrame();
   lcd.SetBackColor(MENU_FRAME_COLOR);
   lcd.SetTextColor(MENU_FRAME_TEXTCOLOR);
   lcd.SetFont(&Font20);
-  for (int i = 0; i < MENU_DISPLAY_COUNT; i++)
+  // display all visible menu items
+  // but if total menu count is less than visible menu items, use totalMenuCount lower value
+  for (int i = 0; i < (totalMenuCount < MENU_DISPLAY_COUNT ? totalMenuCount : MENU_DISPLAY_COUNT ); i++)
   {
-    lcd.DisplayStringAt(MENU_FRAME_PADDING, (TITLE_BAR_HEIGHT + MENU_FRAME_PADDING) + (MENU_FRAME_LINE_HEIGHT * i), (uint8_t *)mnuOptions[i + menuOffset], LEFT_MODE);
+    lcd.DisplayStringAt(MENU_FRAME_PADDING, (TITLE_BAR_HEIGHT + MENU_FRAME_PADDING) + (MENU_FRAME_LINE_HEIGHT * i), (uint8_t *)MenuOptions[i + menuOffset].MenuText, LEFT_MODE);
   }
 }
 
 /*  This function highlights the currently selected menu option.
     This function is also aware if menus were shifted up or down   */
-void HighlightMenuOption(const char *mnuOptions[], uint8_t menuOffset, uint8_t position)
+void HighlightMenuOption(uint8_t menuOffset, uint8_t position)
 {
-  // position starts at 1..MENU_DISPLAY_COUNT
+  // position starts at 1..MENU_DISPLAY_COUNT! ... except when total Menu count is less than MENU_DISPLAY_COUNT
+  // Sanity check: position can never be > total menu count
+  position = (position > totalMenuCount ? totalMenuCount : position );
   // NOTE: Text may have uneven padding, so we need to draw the highlight bkgd color manually
   lcd.SetTextColor(MENU_HIGHLIGHT_BACKCOLOR);
   lcd.FillRect(0, TITLE_BAR_HEIGHT + (MENU_FRAME_LINE_HEIGHT * (position - 1)), LcdWidth, MENU_FRAME_LINE_HEIGHT);
   // then print the text with a specific background color
   lcd.SetBackColor(MENU_HIGHLIGHT_BACKCOLOR);
   lcd.SetTextColor(MENU_HIGHLIGHT_TEXTCOLOR);
-  lcd.DisplayStringAt(MENU_FRAME_PADDING, (TITLE_BAR_HEIGHT + MENU_FRAME_PADDING) + (MENU_FRAME_LINE_HEIGHT * (position - 1)), (uint8_t *)mnuOptions[menuOffset + position - 1], LEFT_MODE);
+  lcd.DisplayStringAt(MENU_FRAME_PADDING, (TITLE_BAR_HEIGHT + MENU_FRAME_PADDING) + (MENU_FRAME_LINE_HEIGHT * (position - 1)), (uint8_t *)MenuOptions[menuOffset + position - 1].MenuText, LEFT_MODE);
 }
 
 /*  this function is the business logic for monitoring scroll position and 
@@ -248,6 +231,8 @@ void UpdateDisplayMenu(uint8_t menuOffset, uint8_t position)
 {
   // check if we need to shift up or down our menu options to show off-screen items
   // ex: pos=8, offset=0 ===> pos=7, offset=1
+
+  // we need to check if totalMenuCount is less than MENU_DISPLAY_COUNT
   if ((position > MENU_DISPLAY_COUNT) && (position + menuOffset <= totalMenuCount))
   {
     position = MENU_DISPLAY_COUNT;
@@ -269,12 +254,17 @@ void UpdateDisplayMenu(uint8_t menuOffset, uint8_t position)
   {
     position = MENU_DISPLAY_COUNT;
   }
+  // Sanity check: position can never be > total menu items
+  if (position > totalMenuCount){
+    position = totalMenuCount;
+  }
+
   // update global variables
   mainMenuPosition = position;
   mainMenuOffset = menuOffset;
 
-  DisplayMenuOptions(MenuOptions, menuOffset);
-  HighlightMenuOption(MenuOptions, menuOffset, position);
+  DisplayMenuOptions(menuOffset);
+  HighlightMenuOption(menuOffset, position);
 }
 
 void DrawTitleBar(char *Title)
@@ -290,18 +280,25 @@ void DrawTitleBar(char *Title)
 int main()
 {
   pc.baud(115200);
-  // pc.printf("%d menu items \n", totalMenuCount);
+  pc.printf("%d menu items \n", totalMenuCount);
 
   InitRotaryEncoder();
   InitLCDScreen();
+
+  // setup callbacks for different menu items
+  MenuOptions[0].callback_function = &MenuOne_Function;
+  MenuOptions[1].callback_function = &MenuTwo_Function;
+  MenuOptions[2].callback_function = &MenuThree_Function;
+  MenuOptions[3].callback_function = &MenuFour_Function;
+  MenuOptions[4].callback_function = &MenuOne_Function;
 
   // draw title bar
   DrawTitleBar(PROGRAM_VERSION);
   DrawMenuFrame();
 
   // these next 2 functions control the logic of the menu display
-  DisplayMenuOptions(MenuOptions, mainMenuOffset);
-  HighlightMenuOption(MenuOptions, mainMenuOffset, mainMenuPosition);
+  DisplayMenuOptions(mainMenuOffset);
+  HighlightMenuOption(mainMenuOffset, mainMenuPosition);
 
   while (true)
   {
