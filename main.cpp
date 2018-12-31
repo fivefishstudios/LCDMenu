@@ -10,8 +10,10 @@
 
 using namespace std;
 
-LCD_DISCO_F429ZI lcd;
-char lcdBuffer[20]; // lcd display buffer
+
+uint8_t mainMenuOffset = 0;
+uint8_t mainMenuPosition = 1;
+uint8_t totalMenuCount = sizeof(MenuOptions) / sizeof(char *);
 uint16_t LcdWidth = lcd.GetXSize();
 uint16_t LcdHeight = lcd.GetYSize();
 
@@ -182,15 +184,15 @@ void InitLCDScreen()
   lcd.Clear(LCD_COLOR_BLACK);
 }
 
-void DrawTitleBar(char *Title)
-{
-  lcd.SetTextColor(TITLE_BAR_COLOR);
-  lcd.FillRect(0, 0, LcdWidth, TITLE_BAR_HEIGHT);
-  lcd.SetTextColor(TITLE_BAR_TEXTCOLOR);
-  lcd.SetBackColor(TITLE_BAR_COLOR);
-  lcd.SetFont(&Font24);
-  lcd.DisplayStringAt(0, 10, (uint8_t *)Title, CENTER_MODE);
-}
+// void DrawTitleBar(char *Title)
+// {
+//   lcd.SetTextColor(TITLE_BAR_COLOR);
+//   lcd.FillRect(0, 0, LcdWidth, TITLE_BAR_HEIGHT);
+//   lcd.SetTextColor(TITLE_BAR_TEXTCOLOR);
+//   lcd.SetBackColor(TITLE_BAR_COLOR);
+//   lcd.SetFont(&Font24);
+//   lcd.DisplayStringAt(0, 10, (uint8_t *)Title, CENTER_MODE);
+// }
 
 void ClearStatusBar()
 {
@@ -213,7 +215,7 @@ void DrawMenuFrame()
   lcd.FillRect(0, TITLE_BAR_HEIGHT, LcdWidth, LcdHeight - TITLE_BAR_HEIGHT - STATUS_BAR_HEIGHT);
 }
 
-void DisplayMenuOptions(uint8_t menuOffset)
+void DisplayMenuOptions(const char *mnuOptions[], uint8_t menuOffset)
 {
   // clear menu and redisplay
   DrawMenuFrame();
@@ -222,13 +224,13 @@ void DisplayMenuOptions(uint8_t menuOffset)
   lcd.SetFont(&Font20);
   for (int i = 0; i < MENU_DISPLAY_COUNT; i++)
   {
-    lcd.DisplayStringAt(MENU_FRAME_PADDING, (TITLE_BAR_HEIGHT + MENU_FRAME_PADDING) + (MENU_FRAME_LINE_HEIGHT * i), (uint8_t *)MenuOptions[i + menuOffset], LEFT_MODE);
+    lcd.DisplayStringAt(MENU_FRAME_PADDING, (TITLE_BAR_HEIGHT + MENU_FRAME_PADDING) + (MENU_FRAME_LINE_HEIGHT * i), (uint8_t *)mnuOptions[i + menuOffset], LEFT_MODE);
   }
 }
 
 /*  This function highlights the currently selected menu option.
     This function is also aware if menus were shifted up or down   */
-void HighlightMenuOption(uint8_t menuOffset, uint8_t position)
+void HighlightMenuOption(const char *mnuOptions[], uint8_t menuOffset, uint8_t position)
 {
   // position starts at 1..MENU_DISPLAY_COUNT
   // NOTE: Text may have uneven padding, so we need to draw the highlight bkgd color manually
@@ -237,7 +239,7 @@ void HighlightMenuOption(uint8_t menuOffset, uint8_t position)
   // then print the text with a specific background color
   lcd.SetBackColor(MENU_HIGHLIGHT_BACKCOLOR);
   lcd.SetTextColor(MENU_HIGHLIGHT_TEXTCOLOR);
-  lcd.DisplayStringAt(MENU_FRAME_PADDING, (TITLE_BAR_HEIGHT + MENU_FRAME_PADDING) + (MENU_FRAME_LINE_HEIGHT * (position - 1)), (uint8_t *)MenuOptions[menuOffset + position - 1], LEFT_MODE);
+  lcd.DisplayStringAt(MENU_FRAME_PADDING, (TITLE_BAR_HEIGHT + MENU_FRAME_PADDING) + (MENU_FRAME_LINE_HEIGHT * (position - 1)), (uint8_t *)mnuOptions[menuOffset + position - 1], LEFT_MODE);
 }
 
 /*  this function is the business logic for monitoring scroll position and 
@@ -271,8 +273,18 @@ void UpdateDisplayMenu(uint8_t menuOffset, uint8_t position)
   mainMenuPosition = position;
   mainMenuOffset = menuOffset;
 
-  DisplayMenuOptions(menuOffset);
-  HighlightMenuOption(menuOffset, position);
+  DisplayMenuOptions(MenuOptions, menuOffset);
+  HighlightMenuOption(MenuOptions, menuOffset, position);
+}
+
+void DrawTitleBar(char *Title)
+{
+  lcd.SetTextColor(TITLE_BAR_COLOR);
+  lcd.FillRect(0, 0, LcdWidth, TITLE_BAR_HEIGHT);
+  lcd.SetTextColor(TITLE_BAR_TEXTCOLOR);
+  lcd.SetBackColor(TITLE_BAR_COLOR);
+  lcd.SetFont(&Font24);
+  lcd.DisplayStringAt(0, 10, (uint8_t *)Title, CENTER_MODE);
 }
 
 int main()
@@ -288,8 +300,8 @@ int main()
   DrawMenuFrame();
 
   // these next 2 functions control the logic of the menu display
-  DisplayMenuOptions(mainMenuOffset);
-  HighlightMenuOption(mainMenuOffset, mainMenuPosition);
+  DisplayMenuOptions(MenuOptions, mainMenuOffset);
+  HighlightMenuOption(MenuOptions, mainMenuOffset, mainMenuPosition);
 
   while (true)
   {

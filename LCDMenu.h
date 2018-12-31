@@ -1,4 +1,9 @@
 // LCD Menu 
+#include "LCD_DISCO_F429ZI.h"
+
+LCD_DISCO_F429ZI lcd;
+char lcdBuffer[20]; // lcd display buffer
+
 #define PROGRAM_VERSION         "LCDMenu v0.5"
 
 #define TITLE_BAR_HEIGHT        40
@@ -38,11 +43,6 @@ const char *MenuOptions[] = {
     "17 array items.",
     "18 We can go on",
     "19 forever here."};
-
-
-uint8_t mainMenuOffset = 0;
-uint8_t mainMenuPosition = 1;
-uint8_t totalMenuCount = sizeof(MenuOptions) / sizeof(char *);
 
 // forward declare functions
 void DrawTitleBar(char *Title);
